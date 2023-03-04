@@ -189,14 +189,7 @@ class ProxyGenerator(object):
         :returns: whether or not the proxy was set up successfully
         :rtype: {bool}
         """
-        if http[:4] != "http":
-            http = "http://" + http
-        if https is None:
-            https = http
-        elif https[:5] != "https":
-            https = "https://" + https
-
-        proxies = {'http://': http, 'https://': https}
+        proxies = {'http': http, 'https': https}
         if self.proxy_mode == ProxyMode.SCRAPERAPI:
             r = requests.get("http://api.scraperapi.com/account", params={'api_key': self._API_KEY}).json()
             if "error" in r:
@@ -215,10 +208,9 @@ class ProxyGenerator(object):
 
         return self._proxy_works
 
-    @deprecated(version='1.5', reason="Tor methods are deprecated and are not actively tested.")
     def Tor_External(self, tor_sock_port: int, tor_control_port: int, tor_password: str):
         """
-        Setting up Tor Proxy. A tor service should be already running on the system. Otherwise you might want to use Tor_Internal
+        Setting up Tor Proxy. A tor service should be already running on the system. Otherwise, you might want to use Tor_Internal
 
         :param tor_sock_port: the port where the Tor sock proxy is running
         :type tor_sock_port: int
@@ -483,8 +475,15 @@ class ProxyGenerator(object):
                 # ScraperAPI requests to work.
                 # https://www.scraperapi.com/documentation/
                 init_kwargs["verify"] = False
-        self._session = httpx.Client(**init_kwargs)
+                self._session = httpx.Client(**init_kwargs)
+            else:
+                self._session = requests.session()
+                self._session.proxies = {'http': 'socks5://127.0.0.1:9050',
+                                   'https': 'socks5://127.0.0.1:9050'}
+
         self._webdriver = None
+
+
 
         return self._session
 
@@ -518,7 +517,7 @@ class ProxyGenerator(object):
                 all_proxies = freeproxy.get_proxy_list()
             if proxy in self._dirty_freeproxies:
                 continue
-            proxies = {'http://': proxy, 'https://': proxy}
+            proxies = {'http': proxy, 'https': proxy}
             proxy_works = self._check_proxy(proxies)
             if proxy_works:
                 dirty_proxy = (yield proxy)

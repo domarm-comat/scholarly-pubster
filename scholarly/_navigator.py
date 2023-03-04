@@ -109,8 +109,6 @@ class Navigator(object, metaclass=Singleton):
         timeout=self._TIMEOUT
         while tries < self._max_retries:
             try:
-                w = random.uniform(1,2)
-                time.sleep(w)
                 resp = session.get(pagerequest, timeout=timeout)
                 if premium is False:  # premium methods may contain sensitive information
                     self.logger.debug("Session proxy config is {}".format(pm._proxies))
