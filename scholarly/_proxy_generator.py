@@ -483,8 +483,6 @@ class ProxyGenerator(object):
 
         self._webdriver = None
 
-
-
         return self._session
 
     def _close_session(self):
