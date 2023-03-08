@@ -1,4 +1,7 @@
 """scholarly.py"""
+import html
+import urllib
+
 import requests
 import re
 import os
@@ -180,6 +183,24 @@ class _Scholarly:
         """
         url = _PUBSEARCH.format(requests.utils.quote(pub_title))
         return self.__nav.search_publication(url, filled)
+
+    def translate(self, to_translate: str, to_language: str = "auto", from_language: str = "auto") -> str:
+        """
+        Translates a text from one language to another using the Google Translate API.
+        Args:
+            to_translate (str): The text to translate.
+            to_language (str, optional): The language to translate the text to. Defaults to "auto".
+            from_language (str, optional): The language of the text to translate. Defaults to "auto".
+        Returns:
+            str: The translated text.
+        """
+        session = self.__nav.pm1.get_session()
+
+        link = f"https://translate.google.com/m?tl={to_language}&sl={from_language}&hl={to_language}&q={urllib.parse.quote(to_translate)}"
+        request = session.get(link, headers={
+            'User-Agent': "Mozilla/4.0 (compatible;MSIE 6.0;Windows NT 5.1;SV1;.NET CLR 1.1.4322;.NET CLR 2.0.50727;.NET CLR 3.0.04506.30)"})
+        re_result = re.findall(r'(?s)class="(?:t0|result-container)">(.*?)<', request.text)
+        return "" if len(re_result) == 0 else html.unescape(re_result[0])
 
     def search_author(self, name: str):
         """Search by author name and return a generator of Author objects
